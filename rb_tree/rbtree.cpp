@@ -1,4 +1,4 @@
-#include "RBTree.h"
+#include "rbtree.h"
 
 inline std::string RBNode::toString() {
   std::stringstream ss;

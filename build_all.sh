@@ -1,3 +1,4 @@
-cd rbtree
-g++ RBTree.cpp testRBTree.cpp -I./ -o RBTree
+cd rb_tree
+g++ rbtree.cpp test_rbtree.cpp -I./ -o rbtree
+mv rbtree ../bin
 cd ..

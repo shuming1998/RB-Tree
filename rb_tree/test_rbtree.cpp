@@ -1,4 +1,4 @@
-#include "RBTree.h"
+#include "rbtree.h"
 
 /*
  * 红黑树插入删除可视化网站
