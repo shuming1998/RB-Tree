@@ -12,4 +12,5 @@ _deps
 ./build
 ./bin
 .vscode/
-RBTree
+test_hashtable
+test_rbtree

@@ -1,0 +1,1 @@
+g++ rbtree.cpp test_rbtree.cpp -I./ -o test_rbtree
