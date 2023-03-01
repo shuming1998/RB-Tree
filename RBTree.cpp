@@ -39,8 +39,76 @@ void RBTree::addNode(int id) {
     newNode->isBlack_ = true;
   } else {
     root_->addNode(newNode);
-    adjustAfterAddNode(newNode);
+    adjustAfterAdd(newNode);
   }
+}
+
+/*
+ * 1 没找到删除节点直接返回
+ * 2 如果删除的是唯一的根节点，root 置空后返回
+ * 3 删除有两个子节点的节点
+ *    · 找到替换的前驱或后继节点
+ *    · 将 delNode 指向替换节点，转为 4 或 5 处理
+ * 4 删除只有一个子节点的节点时，删除的节点只可能是黑色的，其子节点只可能是红色
+ *    · 将红色子节点的值拷贝到该删除的节点
+ *    · 删除该节点转换为删除它的红色叶子节点，即 5.2
+ * 5 删除叶子节点
+ *    · 删除的是黑色叶子节点，需要对删除的黑色叶子节点进行调整（难）
+ *    · 删除红黑两种叶子节点（黑色已经调整，红色可直接删除）
+*/
+RBNode *RBTree::removeNode(int id) {
+  RBNode *delNode = findDelNode(id);
+  // 1 找不到该删除的节点
+  if (!delNode) {
+    std::cout << "can't find delete node in RB-Tree!\n";
+    return nullptr;
+  }
+
+  // 用来返回删除的节点
+  RBNode *returnNode = delNode;
+  // 2 该节点为唯一的根节点
+  if (delNode == root_ && !root_->left_ && !root_->right_) {
+    root_ = nullptr;
+    return returnNode;
+  }
+
+  RBNode *replaceNode = nullptr;
+  // 3 该节点有两个叶子节点，需要置换为前驱或后继节点
+  // 将 delNode 指向置换节点，转为 4 或 5
+  if (delNode->left_ && delNode->right_) {
+    replaceNode = bestReplaceNode(delNode);
+    // 将该节点置换为找到的前驱或后继节点
+    delNode->id_ = replaceNode->id_;
+    // 此时需要删除的节点变为置换的那个节点
+    delNode = replaceNode;
+  }
+
+  // 4 删除的是有一个红色子节点的黑色节点
+  // 这种结构一定是黑色节点带一个红色子节点，不需要再判断颜色
+  if (delNode->left_ && !delNode->right_ ||
+     !delNode->left_ && delNode->right_) {
+    replaceNode = delNode->left_ ? delNode->left_ : delNode->right_;
+    // 将该节点置换为红色叶子节点
+    delNode->id_ = replaceNode->id_;
+    // 此时需要删除的节点变为红色叶子节点，转为 5.2
+    delNode = replaceNode;
+  }
+
+  // 5 删除的是黑色叶子节点，需要进行平衡调整！
+  if (delNode->isBlack_) {
+    adjustAfterRemove(delNode);
+  }
+  // 调整后，将需要删除的叶子节点与父节点断开
+  RBNode *parent = delNode->parent_;
+  if (isLeftNode(delNode)) {
+    parent->left_ = nullptr;
+  } else {
+    parent->right_ = nullptr;
+  }
+  delNode->parent_ = nullptr;
+  delNode = nullptr;
+  return returnNode;
+  // 5.2 删除黑色或者红色叶子节点
 }
 
 /*
@@ -62,7 +130,7 @@ void RBTree::addNode(int id) {
  *    · 父、叔节点变为黑色，爷节点变为红色
  *    · 如果爷节点的父节点也为红色 => 递归调用 让爷节点以上的节点继续旋转变色
 */
-void RBTree::adjustAfterAddNode(RBNode *leafNode) {
+void RBTree::adjustAfterAdd(RBNode *leafNode) {
   RBNode *parent = leafNode->parent_;
 
   if (!parent) {
@@ -76,58 +144,170 @@ void RBTree::adjustAfterAddNode(RBNode *leafNode) {
     return;
   }
 
-  RBNode *grandpa = parent->parent_;
-  RBNode *uncle = isLeftNode(parent) ? grandpa->right_ : grandpa->left_;
+  RBNode *grand = parent->parent_;
+  RBNode *uncle = isLeftNode(parent) ? grand->right_ : grand->left_;
 
   // 没有叔节点，或者叔节点为黑色，为 3-节点 的添加
   if (!uncle || uncle->isBlack_) {
-    RBTree::InsertType type = getRotateType(leafNode);
+    RBTree::AddType type = rotateTypeofAdd(leafNode);
     switch (type) {
-      case RBTree::InsertType::LL :
-        grandpa->isBlack_ = false;
+      case RBTree::AddType::LL :
+        grand->isBlack_ = false;
         parent->isBlack_ = true;
-        rightRotate(grandpa);
+        rightRotate(grand);
         break;
-      case RBTree::InsertType::RR :
-        grandpa->isBlack_ = false;
+      case RBTree::AddType::RR :
+        grand->isBlack_ = false;
         parent->isBlack_ = true;
-        leftRotate(grandpa);
+        leftRotate(grand);
         break;
-      case RBTree::InsertType::LR :
-        grandpa->isBlack_ = false;
+      case RBTree::AddType::LR :
+        grand->isBlack_ = false;
         leafNode->isBlack_ = true;
         leftRotate(parent);
-        rightRotate(grandpa);
+        rightRotate(grand);
         break;
-      case RBTree::InsertType::RL :
-        grandpa->isBlack_ = false;
+      case RBTree::AddType::RL :
+        grand->isBlack_ = false;
         leafNode->isBlack_ = true;
         rightRotate(parent);
-        leftRotate(grandpa);
+        leftRotate(grand);
         break;
     }
   } else {
     // 为 4-节点 的添加，需要将父、叔节点变黑，爷节点变红
     // 并且需要将爷节点作为新节点重新调整
 
-    grandpa->isBlack_ = false;
+    grand->isBlack_ = false;
     parent->isBlack_ = true;
     uncle->isBlack_ = true;
     // 爷节点变为红色后，其父节点有可能是红的
     // 此时递归调用会进入 3-节点 的调整，爷节点的叔节点此时有可能是黑的
     // 如果一直调整到了根节点，此时根节点会变红
-    adjustAfterAddNode(grandpa);
+    adjustAfterAdd(grand);
   }
 
   // 不管如何递归调整，最后一定要确保根节点是黑色
   root_->isBlack_ = true;
 }
 
-inline RBTree::InsertType RBTree::getRotateType(RBNode *node) {
+/* 删除的一定是黑色叶子节点
+ * 1 是根节点，直接删除
+ * 2 兄弟为黑色，以删除的是黑色右子节点为例 (L型)，R 型操作与此对称
+ *    (1) 兄弟有红色子节点
+ *        1) 兄弟有两个红色子节点，可看作 LL 或 LR，但看作 LL 型只需右旋一次
+ *        2) 兄弟有红色左子节点，LL 型：
+ *            ① 父节点右旋
+ *            ② 恢复未删除前个位置的颜色：爷孙变黑，兄变父色
+ *        3) 兄弟有红色右子节点，LR 型：
+ *            ① 先兄节点左旋，再父节点右旋
+ *            ② 恢复未删除前个位置的颜色：侄变父色，父变黑色
+ *    (2) 兄弟节点为叶子节点
+ *        1) 父节点为红色：
+ *            ① 父变黑，兄变红
+ *        2) 父节点为黑色：
+ *            ① 将兄弟节点变红
+ *            ① 将父节点看作是要删除的节点，向上递归调整，直到遇见红色父节点
+ *              变为上面的方法 1)，或一直递归到根节点
+ * 3 兄弟为红色
+ *    1) 兄弟是左子树
+ *        ① 将兄弟和其右儿子(当前删除节点的右侄)颜色互换
+ *        ② 父节点右旋
+ *    2) 兄弟是右子树
+ *        ① 将兄弟和其左儿子(当前删除节点的左侄)颜色互换
+ *        ② 父节点左旋
+*/
+void RBTree::adjustAfterRemove(RBNode *node) {
+  // 如果是根节点，染黑返回(该节点可能是删除的节点，也可能是需要调整平衡的节点)
+  if (root_ == node) {
+    // 保险起见，染黑处理一下
+    node->isBlack_ = true;
+    return;
+  }
+
+  RBNode *parent = node->parent_;
+  RBNode *brother = isLeftNode(node) ? parent->right_ : parent->left_;
+  // 该调整节点的兄弟是黑色
+  if (brother->isBlack_) {
+    // 根据兄弟节点的旋转类型调整
+    RBTree::RemoveType type = rotateTypeofRemove(brother);
+    switch (type) {
+      // 黑不够，侄来凑
+      case RemoveType::LL :
+        // 兄染父色，接替父节点
+        brother->isBlack_ = parent->isBlack_;
+        // 侄染黑色，接替兄弟点
+        brother->left_->isBlack_ = true;
+        // 右旋
+        rightRotate(parent);
+        break;
+      case RemoveType::RR :
+        // 兄染父色，接替父节点
+        brother->isBlack_ = parent->isBlack_;
+        // 侄染黑色，接替兄弟点
+        brother->left_->isBlack_ = true;
+        // 左旋
+        leftRotate(parent);
+        break;
+      case RemoveType::LR :
+        // NR 侄染父色，父染黑色
+        brother->right_->isBlack_ = parent->isBlack_;
+        parent->isBlack_ = true;
+        // 以兄左旋
+        leftRotate(brother);
+        // 以父右旋
+        rightRotate(parent);
+        break;
+      case RemoveType::RL :
+        // NL 侄染父色，父染黑色
+        brother->left_->isBlack_ = parent->isBlack_;
+        parent->isBlack_ = true;
+        // 以兄右旋
+        rightRotate(brother);
+        // 以父左旋
+        leftRotate(parent);
+        break;
+      // 兄无子，父红头
+      default :
+        // 父节点是红色，直接与兄节点交换颜色
+        if (!parent->isBlack_) {
+          parent->isBlack_ = true;
+          brother->isBlack_ = false;
+        } else {
+          // 父节点是黑色，先将兄弟节点变红
+          brother->isBlack_ = false;
+          // 将父节点作为新的删除节点(并不真的删除)向上递归，直到遇到红色节点或者低轨道根节点
+          adjustAfterRemove(parent);
+        }
+        break;
+    }
+  // 该删除节点的兄弟是红色
+  } else {
+    // 兄弟红，旋黑中；随父侄，黑变红
+    // 此时必有两个侄节点，且侄节点和父节点颜色都为黑
+    // 如果删除的是父节点的左子节点
+    if (isLeftNode(node)) {
+      // 兄弟节点和其左子节点交换颜色
+      brother->isBlack_ = true;
+      brother->left_->isBlack_ = false;
+      // 以父节点左旋，此时兄弟节点变为黑色父节点
+      leftRotate(parent);
+    // 如果删除的是父节点的右子节点
+    } else {
+      // 兄弟节点和其右子节点交换颜色
+      brother->isBlack_ = true;
+      brother->right_->isBlack_ = false;
+      // 以父节点右旋，此时兄弟节点变为黑色父节点
+      rightRotate(parent);
+    }
+  }
+}
+
+inline RBTree::AddType RBTree::rotateTypeofAdd(RBNode *node) {
   RBNode *parent = node->parent_;
   // 插入的节点为空或为根节点
   if (!node || !parent) {
-    return InsertType::OTHER;
+    return AddType::OTHER;
   }
 
   // 插入的节点为红色，且父节点也为红色，为 3-节点添加
@@ -136,22 +316,42 @@ inline RBTree::InsertType RBTree::getRotateType(RBNode *node) {
     if (isLeftNode(parent)) {
       // 该插入的节点为左子树 => LL
       if (isLeftNode(node)) {
-        return InsertType::LL;
+        return AddType::LL;
       } else {
-        return InsertType::LR;
+        return AddType::LR;
       }
     } else {
       // 父节点为右子树 => R型
       // 该插入的节点为左子树 => RL
       if (isLeftNode(node)) {
-        return InsertType::RL;
+        return AddType::RL;
       } else {
-        return InsertType::RR;
+        return AddType::RR;
       }
     }
   }
 
-  return InsertType::OTHER;
+  return AddType::OTHER;
+}
+
+RBTree::RemoveType RBTree::rotateTypeofRemove(RBNode *brother) {
+  if (isLeftNode(brother)) {
+    if (brother->left_ && !brother->left_->isBlack_) {
+      return RemoveType::LL;
+    }
+    if (brother->right_ && !brother->right_->isBlack_) {
+      return RemoveType::LR;
+    }
+  } else {
+    if (brother->left_ && !brother->left_->isBlack_) {
+      return RemoveType::RL;
+    }
+    if (brother->right_ && !brother->right_->isBlack_) {
+      return RemoveType::RR;
+    }
+  }
+  // 兄弟没有子节点，或者子节点是黑色的
+  return RemoveType::OTHER;
 }
 
 inline bool RBTree::isLeftNode(RBNode *node) {
@@ -173,7 +373,7 @@ void RBTree::preOrder(RBNode *node) {
   std::cout << '\n';
 }
 
-/*            节点左旋
+/*       上层的 ⚪ 节点左旋
       |                      |
      ⚪                     ⭕
     /  \        ==>         /  \
@@ -209,7 +409,7 @@ void RBTree::leftRotate(RBNode *oldNode) {
   oldNode->parent_ = newNode;
 }
 
-/*            节点右旋
+/*          上层的 ⚪ 节点右旋
         |                      |
        ⚪                     ⭕
       /  \        ==>         /  \
@@ -245,4 +445,63 @@ void RBTree::rightRotate(RBNode *oldNode) {
   newNode->right_ = oldNode;
   // 旧顶点的父亲变为新顶点
   oldNode->parent_ = newNode;
+}
+
+RBNode *RBTree::findDelNode(int id) {
+  RBNode *temp = root_;
+  while (temp) {
+    if (temp->id_ == id) {
+      return temp;
+    }
+    if (temp->id_ < id) {
+      temp = temp->right_;
+    } else {
+      temp = temp->left_;
+    }
+  }
+  return nullptr;
+}
+
+// 获取前驱节点，即比当前节点值小的最大值节点
+RBNode *RBTree::predecessor(RBNode *node) {
+  // 先进入左子树
+  RBNode *temp = node->left_;
+  while (temp->right_) {
+    temp = temp->right_;
+  }
+  return temp;
+}
+
+// 获取后继节点，即比当前节点值大的最小值节点
+RBNode *RBTree::successor(RBNode *node) {
+  // 先进入右子树
+  RBNode *temp = node->right_;
+  while (temp->left_) {
+    temp = temp->left_;
+  }
+  return temp;
+}
+
+/*
+* 先找前驱节点，找到以下两种前驱之一就返回：
+*   · 红色叶子节点
+*   · 有一个左红色叶子节点的黑色节点
+*
+* 否则返回后继
+*/
+RBNode *RBTree::bestReplaceNode(RBNode *delNode) {
+  RBNode *predNode = predecessor(delNode);
+  // 前驱是红色的，此时该节点已经是叶子节点
+  if (!predNode->isBlack_) {
+    return predNode;
+  }
+
+  // 前驱节点是黑色的，如果它有左孩子一定是红色的
+  if (predNode->left_) {
+    return predNode;
+  }
+
+  // 前驱节点中找不到合适的，最后返回后继节点
+  // 因为后继节点中仍可能有合适的替代节点
+  return successor(delNode);
 }
