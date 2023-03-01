@@ -49,7 +49,7 @@ public:
 
 private:
   // 判断是否为左子节点，用于左旋右旋
-  bool isLeftNode(RBNode *node);
+  bool isLeft(RBNode *node);
   // 添加节点后调整平衡
   void adjustAfterAdd(RBNode *leafNode);
   // 删除节点后调整平衡

@@ -1,0 +1,1 @@
+g++ avltree.cpp test_avltree.cpp -I./ -o test_avltree
