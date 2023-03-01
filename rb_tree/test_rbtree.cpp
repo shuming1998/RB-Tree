@@ -5,7 +5,6 @@
  * https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
 */
 
-
 int main() {
 //------------------插入节点后删除------------------
   RBTree *tree = new RBTree();

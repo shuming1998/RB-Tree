@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 
@@ -33,10 +32,11 @@ public:
   void preorder(AVLNode *apex) const;
   // 中序遍历
   void inorder(AVLNode *apex) const;
-
   // 根据 *最小不平衡顶点 apex* 判断需要旋转的类型
   AVLTree::RotateType rotateType(AVLNode *apex);
+
   AVLNode *root() { return this->root_; }
+
 private:
   // 是否为左子节点
   bool isLeft(AVLNode *node);
