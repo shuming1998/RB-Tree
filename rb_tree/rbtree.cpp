@@ -414,8 +414,8 @@ void RBTree::leftRotate(RBNode *oldNode) {
           ⚪                     ⭕
           /  \        ==>     /  \
       ⭕  ⚪             ⚪ ⚪
-      /  \                    /  \
-  ⚪   🔺           🔺   ⚪
+      /  \                           /  \
+  ⚪   🔺                  🔺   ⚪
 */
 void RBTree::rightRotate(RBNode *oldNode) {
   RBNode *parent = oldNode->parent_;
