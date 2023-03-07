@@ -374,12 +374,12 @@ void RBTree::preOrder(RBNode *node) {
 }
 
 /*       上层的 ⚪ 节点左旋
-      |                      |
-     ⚪                     ⭕
-    /  \        ==>         /  \
-  ⚪   ⭕                 ⚪  ⚪
-       /  \               /  \
-     🔺   ⚪           ⚪   🔺
+        |                               |
+      ⚪                           ⭕
+      /  \      ==>             /  \
+  ⚪   ⭕                  ⚪  ⚪
+           /  \                 /  \
+       🔺   ⚪        ⚪   🔺
 */
 void RBTree::leftRotate(RBNode *oldNode) {
   RBNode *parent = oldNode->parent_;
@@ -410,12 +410,12 @@ void RBTree::leftRotate(RBNode *oldNode) {
 }
 
 /*          上层的 ⚪ 节点右旋
-        |                      |
-       ⚪                     ⭕
-      /  \        ==>         /  \
-     ⭕  ⚪                ⚪   ⚪
-    /  \                         /  \
-  ⚪   🔺                     🔺   ⚪
+            |                         |
+          ⚪                     ⭕
+          /  \        ==>     /  \
+      ⭕  ⚪             ⚪ ⚪
+      /  \                    /  \
+  ⚪   🔺           🔺   ⚪
 */
 void RBTree::rightRotate(RBNode *oldNode) {
   RBNode *parent = oldNode->parent_;
