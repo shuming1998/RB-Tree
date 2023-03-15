@@ -19,7 +19,8 @@ struct RBNode {
 
 class RBTree {
 public:
-  // 红节点的位置
+  // 3-节点添加，添加一个红色孙节点，爷节点为黑色，父节点为红色
+  // 此时新增红节点的添加位置有四种
   enum class AddType {
     OTHER = 0,
     LL = 1,
@@ -58,7 +59,7 @@ private:
   void leftRotate(RBNode *oldNode);
   // 节点右旋
   void rightRotate(RBNode *oldNode);
-  // 判断添加节点属于哪种情况
+  // 判断添加节点属于哪种情况(3-节点添加)
   AddType rotateTypeofAdd(RBNode *node);
   // 判断删除节点属于哪种情况
   RemoveType rotateTypeofRemove(RBNode *node);
