@@ -23,12 +23,13 @@ void AVLTree::addNode(int val) {
   AVLNode *newNode = new AVLNode(val);
   if (!root_) {
     root_ = newNode;
-  } else {
-    root_->addNode(newNode);
-    auto node = findMinNotBalance(newNode);
-    // 根据最小不平衡点调整树
-    adjust(node);
+    return;
   }
+
+  root_->addNode(newNode);
+  auto node = findMinNotBalance(newNode);
+  // 根据最小不平衡点调整树
+  adjust(node);
 }
 
 void AVLTree::removeNode(int val) {

@@ -2,7 +2,7 @@
 #include <string>
 
 struct AVLNode {
-  AVLNode(int val = 0) { this->val = val; }
+  AVLNode(int val = -1) { this->val = val; }
   void addNode(AVLNode *newNode);
 
   int val;
@@ -31,8 +31,6 @@ public:
   void preorder(AVLNode *apex) const;
   // 中序遍历
   void inorder(AVLNode *apex) const;
-  // 根据 *最小不平衡顶点 apex* 判断需要旋转的类型
-  AVLTree::RotateType rotateType(AVLNode *apex);
 
   AVLNode *root() { return this->root_; }
 
@@ -49,6 +47,8 @@ private:
   int delType(AVLNode *node);
   // 计算该节点作为顶点时树的深度
   int depth(AVLNode *apex);
+  // 根据 *最小不平衡顶点 apex* 判断需要旋转的类型
+  AVLTree::RotateType rotateType(AVLNode *apex);
   // 不平衡点调整
   void adjust(AVLNode *apex);
   // 查询指定 key 的节点
