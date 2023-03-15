@@ -4,17 +4,17 @@
 #include <vector>
 
 struct RBNode {
-  RBNode(int id) { this->id_ = id; }
+  RBNode(int id) { this->id = id; }
   // 打印节点
   std::string toString();
   // 添加节点
   void addNode(RBNode *node);
 
-  int id_ = 0;                // 节点值
-  RBNode *left_ = nullptr;    // 左孩子
-  RBNode *right_ = nullptr;   // 右孩子
-  RBNode *parent_ = nullptr;  // 父亲
-  bool isBlack_ = false;      // 是否黑色节点
+  int id = 0;                // 节点值
+  RBNode *left = nullptr;    // 左孩子
+  RBNode *right = nullptr;   // 右孩子
+  RBNode *parent = nullptr;  // 父亲
+  bool isBlack = false;      // 是否黑色节点
 };
 
 class RBTree {

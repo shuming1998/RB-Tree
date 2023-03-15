@@ -1,15 +1,14 @@
 #include <iostream>
 #include <string>
 
-class AVLNode {
-public:
-  AVLNode(int val = 0) { this->val_ = val; }
+struct AVLNode {
+  AVLNode(int val = 0) { this->val = val; }
   void addNode(AVLNode *newNode);
 
-  int val_;
-  AVLNode *left_;
-  AVLNode *right_;
-  AVLNode *parent_;
+  int val;
+  AVLNode *left;
+  AVLNode *right;
+  AVLNode *parent;
 };
 
 class AVLTree {
