@@ -58,14 +58,15 @@ void RBTree::addNode(int id) {
 */
 RBNode *RBTree::removeNode(int id) {
   RBNode *delNode = findDelNode(id);
+  // 用来返回删除的节点
+  RBNode *returnNode = delNode;
+
   // 1 找不到该删除的节点
   if (!delNode) {
     std::cout << "can't find delete node in RB-Tree!\n";
     return nullptr;
   }
 
-  // 用来返回删除的节点
-  RBNode *returnNode = delNode;
   // 2 该节点为唯一的根节点
   if (delNode == root_ && !root_->left && !root_->right) {
     root_ = nullptr;
@@ -94,11 +95,13 @@ RBNode *RBTree::removeNode(int id) {
     delNode = replaceNode;
   }
 
-  // 5 删除的是黑色叶子节点，需要进行平衡调整！
+  // 5 删除的是叶子节点
+  // 5.1 删除的是黑色叶子节点，需要进行平衡调整！
   if (delNode->isBlack) {
     adjustAfterRemove(delNode);
   }
-  // 调整后，将需要删除的叶子节点与父节点断开
+  // 5.2 删除叶子节点，如果是黑色叶子节点，此时已经调整过了
+  // 将需要删除的叶子节点与父节点断开
   RBNode *parent = delNode->parent;
   if (isLeft(delNode)) {
     parent->left = nullptr;
@@ -108,7 +111,6 @@ RBNode *RBTree::removeNode(int id) {
   delNode->parent = nullptr;
   delNode = nullptr;
   return returnNode;
-  // 5.2 删除黑色或者红色叶子节点
 }
 
 /*
@@ -132,6 +134,9 @@ RBNode *RBTree::removeNode(int id) {
 */
 void RBTree::adjustAfterAdd(RBNode *leafNode) {
   RBNode *parent = leafNode->parent;
+  RBNode *grand = parent->parent;
+  // 叔节点在可能在 4-节点 调整后被用到
+  RBNode *uncle = isLeft(parent) ? grand->right : grand->left;
 
   if (!parent) {
     // 插入的是根节点，颜色会在插入时设置，这里其实不需要设置
@@ -144,10 +149,8 @@ void RBTree::adjustAfterAdd(RBNode *leafNode) {
     return;
   }
 
-  RBNode *grand = parent->parent;
-  RBNode *uncle = isLeft(parent) ? grand->right : grand->left;
-
   // 没有叔节点，或者叔节点为黑色，为 3-节点 的添加
+  // 其中叔节点为黑色，说明是4-节点调整后，需要再次递归调整的情况
   if (!uncle || uncle->isBlack) {
     RBTree::AddType type = rotateTypeofAdd(leafNode);
     switch (type) {
@@ -177,11 +180,11 @@ void RBTree::adjustAfterAdd(RBNode *leafNode) {
   } else {
     // 为 4-节点 的添加，需要将父、叔节点变黑，爷节点变红
     // 并且需要将爷节点作为新节点重新调整
-
     grand->isBlack = false;
     parent->isBlack = true;
     uncle->isBlack = true;
-    // 爷节点变为红色后，其父节点有可能是红的
+
+    // 爷节点变为红色后，爷节点的父节点有可能是红的
     // 此时递归调用会进入 3-节点 的调整，爷节点的叔节点此时有可能是黑的
     // 如果一直调整到了根节点，此时根节点会变红
     adjustAfterAdd(grand);
@@ -276,7 +279,7 @@ void RBTree::adjustAfterRemove(RBNode *node) {
         } else {
           // 父节点是黑色，先将兄弟节点变红
           brother->isBlack = false;
-          // 将父节点作为新的删除节点(并不真的删除)向上递归，直到遇到红色节点或者低轨道根节点
+          // 将父节点作为新的删除节点(并不真的删除)向上递归，直到遇到红色节点或者递归到根节点
           adjustAfterRemove(parent);
         }
         break;
