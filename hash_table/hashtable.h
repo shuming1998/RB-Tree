@@ -9,23 +9,23 @@ class HashNode {
 public:
   HashNode() = default;
   ~HashNode() = default;
-  HashNode(K key, V val) : key(key), val(val) {}
+  HashNode(K key, V val) : key_(key), val_(val) {}
   std::string toString() {
     std::stringstream ss;
-    ss << "{" << key << ": " << val << "}";
+    ss << "{" << key_ << ": " << val_ << "}";
     return ss.str();
   }
 
-  void setVal(V val) { this->val = val; }
-  K key() const { return key; }
-  V val() const { return val; }
+  void setVal(V val) { this->val_ = val; }
+  K key() const { return key_; }
+  V val() const { return val_; }
 
   HashNode<K, V> *prev_ = nullptr;
   HashNode<K, V> *next_ = nullptr;
 
 private:
-  K key;
-  V val;
+  K key_;
+  V val_;
 };
 
 template <typename K, typename V>
