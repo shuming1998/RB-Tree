@@ -346,11 +346,11 @@ RBTree::RemoveType RBTree::rotateTypeofRemove(RBNode *brother) {
       return RemoveType::LR;
     }
   } else {
-    if (brother->left && !brother->left->isBlack) {
-      return RemoveType::RL;
-    }
     if (brother->right && !brother->right->isBlack) {
       return RemoveType::RR;
+    }
+    if (brother->left && !brother->left->isBlack) {
+      return RemoveType::RL;
     }
   }
   // 兄弟没有子节点，或者子节点是黑色的
@@ -493,13 +493,15 @@ RBNode *RBTree::successor(RBNode *node) {
 * 否则返回后继
 */
 RBNode *RBTree::bestReplaceNode(RBNode *delNode) {
+  // 前驱节点或后继节点一定是叶子节点
   RBNode *predNode = predecessor(delNode);
-  // 前驱是红色的，此时该节点已经是叶子节点
+
+  // 前驱是红色的叶子节点，对应情况 1.1，删除黑色叶子节点
   if (!predNode->isBlack) {
     return predNode;
   }
 
-  // 前驱节点是黑色的，如果它有左孩子一定是红色的
+  // 前驱节点是黑色的（如果它有左孩子一定是红色的），对应情况 2，删除带有一个子节点的节点
   if (predNode->left) {
     return predNode;
   }

@@ -30,7 +30,7 @@ public:
   };
 
   // 兄弟节点的红色子节点相对父节点的位置
-  enum class  RemoveType {
+  enum class RemoveType {
     OTHER = 0,
     LL = 1,   // 兄弟为左子树，红色子节点为左子树
     LR = 2,   // 兄弟为左子树，红色子节点为右子树
