@@ -270,16 +270,19 @@ void RBTree::adjustAfterRemove(RBNode *node) {
         // 以父左旋
         leftRotate(parent);
         break;
-      // 兄无子，父红头
+      // 兄弟没有红色子节点
       default :
-        // 父节点是红色，直接与兄节点交换颜色
+        // 如果父节点是红色，直接与兄节点交换颜色
         if (!parent->isBlack) {
           parent->isBlack = true;
           brother->isBlack = false;
         } else {
-          // 父节点是黑色，先将兄弟节点变红
+          // 如果父节点也是黑色，先将兄弟节点变红，此时如果删除该节点
+          // 以父节点为根节点的子树就会平衡，但以祖父节点为根节点的子树不平衡
           brother->isBlack = false;
-          // 将父节点作为新的删除节点(并不真的删除)向上递归，直到遇到红色节点或者递归到根节点
+          // 然后将父节点作为新的删除节点(并不真的删除)向上递归调整
+          // 如果遇到了 parent 的红色父节点，父变黑，parent 兄弟节点变红就可以
+          // 如果 parent 的父节点仍为黑，继续递归，直到遇见红色父节点，或递归至根节点再平衡
           adjustAfterRemove(parent);
         }
         break;
