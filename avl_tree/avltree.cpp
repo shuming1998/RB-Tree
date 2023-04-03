@@ -198,7 +198,7 @@ void AVLTree::rightRotate(AVLNode *oldApex) {
   // 再处理新顶点和旧顶点的关系
   AVLNode *newApexRight = newApex->right;
   oldApex->left = newApexRight;
-  // 如果新顶点的左子树存在，变为旧顶点的右子树
+  // 如果新顶点的右子树存在，变为旧顶点的左子树
   if (newApexRight) {
     newApexRight->parent = oldApex;
   }
