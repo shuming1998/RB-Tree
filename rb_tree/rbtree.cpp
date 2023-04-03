@@ -144,7 +144,7 @@ void RBTree::adjustAfterAdd(RBNode *leafNode) {
     return;
   }
 
-  // 2-节点 的添加，不需要调整
+  // 2-节点的添加，不需要调整
   if (parent->isBlack) {
     return;
   }
