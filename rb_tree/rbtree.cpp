@@ -140,7 +140,7 @@ void RBTree::adjustAfterAdd(RBNode *leafNode) {
 
   if (!parent) {
     // 插入的是根节点，颜色会在插入时设置，这里其实不需要设置
-    // leafNode->isBlack = true;
+    leafNode->isBlack = true;
     return;
   }
 
